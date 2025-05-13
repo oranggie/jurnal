@@ -1,0 +1,159 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Page</title>
+    <style>
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #000000;
+            color: #FFFFFF;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 500;
+            color: #FFFFFF;
+            margin-bottom: 20px;
+        }
+        .description {
+            font-size: 1.1rem;
+            color: #FFFFFF;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #333333;
+            margin: 30px 0;
+        }
+        .content-section {
+            margin-bottom: 20px;
+        }
+        .content-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #1a73e8;
+            cursor: pointer;
+            margin: 0;
+            padding: 10px 0;
+            transition: color 0.3s ease;
+        }
+        .content-title:hover {
+            color: #3b82f6;
+        }
+        .content-body {
+            display: none;
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #FFFFFF;
+            line-height: 1.7;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .content-body.active {
+            display: block;
+            opacity: 1;
+        }
+        @media (max-width: 600px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            .description {
+                font-size: 1rem;
+            }
+            .content-title {
+                font-size: 1.2rem;
+            }
+            .content-body {
+                font-size: 0.95rem;
+            }
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="main-title">Announcing Grok</h1>
+        <p class="description">Grok is an AI modeled after the Hitchhiker’s Guide to the Galaxy. It is intended to answer almost anything and, far harder, even suggest what questions to ask!</p>
+        <hr>
+        <div class="content-section">
+            <h2 class="content-title">Why we are building Grok</h2>
+            <div class="content-body">
+                <p>At xAI, we want to create AI tools that assist humanity in its quest for understanding and knowledge. By creating and improving Grok, we aim to gather feedback and ensure we are building AI tools that maximally benefit all of humanity...</p>
+            </div>
+        </div>
+        <div class="content-section">
+            <h2 class="content-title">The journey to Grok-1</h2>
+            <div class="content-body">
+                <p>The engine powering Grok is Grok-1, our frontier LLM, which we developed over the last four months. Grok-1 has gone through many iterations over this span of time...</p>
+            </div>
+        </div>
+        <div class="content-section">
+            <h2 class="content-title">Engineering at xAI</h2>
+            <div class="content-body">
+                <p>At the frontier of deep learning research, reliable infrastructure must be built with the same care as datasets and learning algorithms. To create Grok, we built a custom training and inference stack...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const titles = document.querySelectorAll('.content-title');
+
+        titles.forEach(title => {
+            title.addEventListener('click', () => {
+                const content = title.nextElementSibling;
+                content.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
